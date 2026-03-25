@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>野球観戦記録</title>
+
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 12px;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    .tabs {
+      display: flex;
+      margin-bottom: 12px;
+      border-bottom: 2px solid #ccc;
+    }
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 12px;
+      cursor: pointer;
+      font-weight: bold;
+      background: #eee;
+      border-right: 1px solid #ccc;
+    }
+    .tab:last-child { border-right: none; }
+    .tab.active {
+      background: #0078d4;
+      color: white;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    fieldset {
+      margin-bottom: 20px;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    label {
+      display: block;
+      margin: 6px 0 2px;
+      font-weight: 600;
+    }
+
+    input, select, textarea, button {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      border: 1px solid #bbb;
+      box-sizing: border-box;
+    }
+
+    textarea { resize: vertical; }
+
+    button {
+      background: #0078d4;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover { background: #005ea0; }
+
+    .inline {
+      display: inline-flex;
+      align-items: center;
+      margin-right: 10px;
+    }
+    .inline input {
+      width: auto;
+      margin-right: 4px;
+    }
+
+    .message { color: green; font-size: 14px; }
+
+    .table-wrapper {
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      min-width: 800px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px;
+    }
+    th { background: #f0f0f0; }
+
+    button.small-btn {
+      width: auto;
+      padding: 6px 10px;
+      font-size: 14px;
+      margin-right: 4px;
+    }
+
+    .hidden { display: none; }
+  </style>
+</head>
+
+<body>
+  <h1>野球観戦記録</h1>
+
+  <!-- タブ -->
+  <div class="tabs">
+    <div class="tab active" data-tab="tab1">記録</div>
+    <div class="tab" data-tab="tab2">検索・一覧</div>
+    <div class="tab" data-tab="tab3">集計</div>
+  </div>
+
+  <!-- 記録 -->
+  <div id="tab1" class="tab-content active">
+    <form id="recordForm">
+      <fieldset>
+        <legend>観戦記録入力</legend>
+
+        <label for="date">観戦日付：</label>
+        <input type="date" id="date" required />
+
+        <label for="category">カテゴリ：</label>
+        <select id="category" required>
+          <option value="">選択してください</option>
+          <option value="一軍">一軍</option>
+          <option value="ファーム">ファーム</option>
+          <option value="オープン戦">オープン戦</option>
+          <option value="練習試合">練習試合</option>
+          <option value="その他">その他</option>
+        </select>
+
+        <div id="categoryOtherWrapper" class="hidden">
+          <label for="categoryOther">カテゴリ（その他）：</label>
+          <input type="text" id="categoryOther" maxlength="50" />
+        </div>
+
+        <label for="stadium">球場：</label>
+        <select id="stadium" required></select>
+
+        <div id="stadiumOtherWrapper" class="hidden">
+          <label for="stadiumOther">球場（その他）：</label>
+          <input type="text" id="stadiumOther" maxlength="50" />
+        </div>
+
+        <label for="homeTeam">ホームチーム：</label>
+        <select id="homeTeam" required></select>
+
+        <div id="homeTeamOtherWrapper" class="hidden">
+          <label for="homeTeamOther">ホームチーム（その他）：</label>
+          <input type="text" id="homeTeamOther" maxlength="50" />
+        </div>
+
+        <label for="awayTeam">ビジターチーム：</label>
+        <select id="awayTeam" required></select>
+
+        <div id="awayTeamOtherWrapper" class="hidden">
+          <label for="awayTeamOther">ビジターチーム（その他）：</label>
+          <input type="text" id="awayTeamOther" maxlength="50" />
+        </div>
+
+        <label>勝敗：</label>
+        <label class="inline"><input type="radio" name="result" value="ホーム勝ち" required> ホーム勝ち</label>
+        <label class="inline"><input type="radio" name="result" value="ビジター勝ち"> ビジター勝ち</label>
+        <label class="inline"><input type="radio" name="result" value="引き分け"> 引き分け</label>
+
+        <label for="memo">メモ（300文字以内）：</label>
+        <textarea id="memo" rows="3" maxlength="300"></textarea>
+
+        <button type="submit">保存</button>
+        <span id="saveMessage" class="message"></span>
+      </fieldset>
+    </form>
+  </div>
+
+  <!-- 検索・一覧 -->
+  <div id="tab2" class="tab-content">
+    <fieldset>
+      <legend>検索条件</legend>
+
+      <label for="searchYear">年：</label>
+      <select id="searchYear"><option value="">指定なし</option></select>
+
+      <label for="searchMonth">月：</label>
+      <select id="searchMonth">
+        <option value="">指定なし</option>
+        <option value="2">2月</option>
+        <option value="3">3月</option><option value="4">4月</option>
+        <option value="5">5月</option><option value="6">6月</option>
+        <option value="7">7月</option><option value="8">8月</option>
+        <option value="9">9月</option><option value="10">10月</option>
+        <option value="11">11月</option><option value="12">12月</option>
+        <option value="1">1月</option>
+      </select>
+
+      <label for="searchHomeTeam">ホームチーム：</label>
+      <select id="searchHomeTeam"></select>
+
+      <label for="searchAwayTeam">ビジターチーム：</label>
+      <select id="searchAwayTeam"></select>
+
+      <label for="searchStadium">球場：</label>
+      <select id="searchStadium"></select>
+
+      <label>ソート：</label>
+      <label class="inline"><input type="radio" name="sortOrder" value="asc" checked> 古い順</label>
+      <label class="inline"><input type="radio" name="sortOrder" value="desc"> 新しい順</label>
+
+      <button id="searchButton" type="button">検索</button>
+      <button id="clearSearchButton" type="button">検索条件クリア</button>
+    </fieldset>
+
+    <div class="table-wrapper">
+      <table id="recordsTable">
+        <thead>
+          <tr>
+            <th>日付</th>
+            <th>カテゴリ</th>
+            <th>ホーム</th>
+            <th>ビジター</th>
+            <th>勝敗</th>
+            <th>球場</th>
+            <th>メモ</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 集計 -->
+  <div id="tab3" class="tab-content">
+    <fieldset>
+      <legend>集計条件</legend>
+
+      <label for="favoriteTeam">お気に入り球団：</label>
+      <select id="favoriteTeam"></select>
+
+      <div id="favoriteOtherWrapper" class="hidden">
+        <label for="favoriteOther">お気に入り球団（その他）：</label>
+        <input type="text" id="favoriteOther" maxlength="50">
+      </div>
+
+      <label class="inline"><input type="checkbox" id="filterCategoryCheck"> カテゴリで絞る</label>
+      <select id="filterCategory" disabled>
+        <option value="">指定なし</option>
+        <option value="一軍">一軍</option>
+        <option value="ファーム">ファーム</option>
+        <option value="オープン戦">オープン戦</option>
+        <option value="練習試合">練習試合</option>
+        <option value="その他">その他</option>
+      </select>
+
+      <label class="inline"><input type="checkbox" id="filterPeriodCheck"> 年月で絞る</label>
+
+      <label for="filterYear">年：</label>
+      <select id="filterYear" disabled></select>
+
+      <label for="filterMonth">月：</label>
+      <select id="filterMonth" disabled>
+        <option value="">指定なし</option>
+        <option value="2">2月</option>
+        <option value="3">3月</option><option value="4">4月</option>
+        <option value="5">5月</option><option value="6">6月</option>
+        <option value="7">7月</option><option value="8">8月</option>
+        <option value="9">9月</option><option value="10">10月</option>
+        <option value="11">11月</option><option value="12">12月</option>
+        <option value="1">1月</option>
+      </select>
+
+      <label class="inline"><input type="checkbox" id="filterStadiumCheck"> 球場で絞る</label>
+      <select id="filterStadium" disabled></select>
+
+      <label class="inline"><input type="checkbox" id="calcWinRateCheck"> 勝率を計算する</label>
+
+      <button id="aggregateButton" type="button">集計</button>
+    </fieldset>
+
+    <div id="aggregateResult"></div>
+  </div>
+
+  <!-- ============================
+       ここから JS
+  ============================ -->
+  <script>
+    /* タブ切り替え */
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+        tab.classList.add("active");
+        document.getElementById(tab.dataset.tab).classList.add("active");
+      });
+    });
+
+    /* 定数 */
+    const NPB_12 = [
+      "横浜DeNAベイスターズ","読売ジャイアンツ","阪神タイガース","中日ドラゴンズ",
+      "広島東洋カープ","東京ヤクルトスワローズ","オリックス・バファローズ",
+      "福岡ソフトバンクホークス","埼玉西武ライオンズ","東北楽天ゴールデンイーグルス",
+      "千葉ロッテマリーンズ","北海道日本ハムファイターズ"
+    ];
+    const FARM_EXTRA = ["オイシックス新潟アルビレックスBC","くふうハヤテベンチャーズ静岡"];
+    const TEAM_OTHER = "その他";
+
+    const STADIUM_ICHIGUN = [
+      "横浜スタジアム","東京ドーム","阪神甲子園球場","バンテリンドーム ナゴヤ",
+      "MAZDA Zoom-Zoom スタジアム広島","明治神宮野球場","京セラドーム大阪",
+      "福岡PayPayドーム","ベルーナドーム","楽天モバイルパーク宮城",
+      "ZOZOマリンスタジアム","エスコンフィールドHOKKAIDO"
+    ];
+    const STADIUM_FARM = [
+      "横須賀スタジアム","バッティングパレスひらつか","Gタウン",
+      "ジャイアンツ球場","阪神鳴尾浜球場","ナゴヤ球場",
+      "由宇練習場","戸田球場","オセアンバファローズスタジアム舞洲",
+      "タマホームスタジアム筑後","CAR3219フィールド","ベルーナドーム",
+      "ウェルファムフーズ森林どりスタジアム泉","ロッテ浦和球場",
+      "ファイターズ鎌ケ谷スタジアム","HARD OFF ECOスタジアム新潟",
+      "草薙総合運動場硬式野球場"
+    ];
+    const STADIUM_OTHER = "その他";
+
+    const STORAGE_KEY = "baseball_records_v1";
+
+    /* 要素取得 */
+    const recordForm = document.getElementById("recordForm");
+    const categorySelect = document.getElementById("category");
+    const categoryOtherWrapper = document.getElementById("categoryOtherWrapper");
+    const categoryOtherInput = document.getElementById("categoryOther");
+
+    const homeTeamSelect = document.getElementById("homeTeam");
+    const homeTeamOtherWrapper = document.getElementById("homeTeamOtherWrapper");
+    const homeTeamOtherInput = document.getElementById("homeTeamOther");
+
+    const awayTeamSelect = document.getElementById("awayTeam");
+    const awayTeamOtherWrapper = document.getElementById("awayTeamOtherWrapper");
+    const awayTeamOtherInput = document.getElementById("awayTeamOther");
+
+    const stadiumSelect = document.getElementById("stadium");
+    const stadiumOtherWrapper = document.getElementById("stadiumOtherWrapper");
+    const stadiumOtherInput = document.getElementById("stadiumOther");
+
+    const saveMessage = document.getElementById("saveMessage");
+    const recordsTableBody = document.querySelector("#recordsTable tbody");
+
+    const searchYearSelect = document.getElementById("searchYear");
+    const searchMonthSelect = document.getElementById("searchMonth");
+    const searchHomeTeamInput = document.getElementById("searchHomeTeam");
+    const searchAwayTeamInput = document.getElementById("searchAwayTeam");
+    const searchStadiumInput = document.getElementById("searchStadium");
+    const searchButton = document.getElementById("searchButton");
+    const clearSearchButton = document.getElementById("clearSearchButton");
+
+    const favoriteTeamSelect = document.getElementById("favoriteTeam");
+    const favoriteOtherWrapper = document.getElementById("favoriteOtherWrapper");
+    const favoriteOtherInput = document.getElementById("favoriteOther");
+
+    const filterCategoryCheck = document.getElementById("filterCategoryCheck");
+    const filterCategorySelect = document.getElementById("filterCategory");
+    const filterPeriodCheck = document.getElementById("filterPeriodCheck");
+    const filterYearSelect = document.getElementById("filterYear");
+    const filterMonthSelect = document.getElementById("filterMonth");
+    const filterStadiumCheck = document.getElementById("filterStadiumCheck");
+    const filterStadiumSelect = document.getElementById("filterStadium");
+    const calcWinRateCheck = document.getElementById("calcWinRateCheck");
+    const aggregateButton = document.getElementById("aggregateButton");
+    const aggregateResultDiv = document.getElementById("aggregateResult");
+
+    /* ローカルストレージ */
+    function loadRecords() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return [];
+      try { return JSON.parse(raw); } catch { return []; }
+    }
+    function saveRecords(records) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    }
+    let records = loadRecords();
+
+    /* 年の初期化 */
+    function initYearSelects() {
+      for (let y = 2000; y <= 2030; y++) {
+        const opt1 = document.createElement("option");
+        opt1.value = y;
+        opt1.textContent = y + "年";
+        if (y === 2026) opt1.selected = true;   // デフォルト2026
+        searchYearSelect.appendChild(opt1);
+
+        const opt2 = document.createElement("option");
+        opt2.value = y;
+        opt2.textContent = y + "年";
+        if (y === 2026) opt2.selected = true;   // デフォルト2026
+        filterYearSelect.appendChild(opt2);
+      }
+    }
+
+    /* お気に入り球団 */
+    function initFavoriteTeamSelect() {
+      favoriteTeamSelect.innerHTML = '<option value="">（全試合）</option>';
+
+      [...NPB_12, ...FARM_EXTRA, TEAM_OTHER].forEach(t => {
+        const opt = document.createElement("option");
+        opt.value = t;
+        opt.textContent = t;
+        favoriteTeamSelect.appendChild(opt);
+      });
+    }
+
+    favoriteTeamSelect.addEventListener("change", () => {
+      if (favoriteTeamSelect.value === TEAM_OTHER) {
+        favoriteOtherWrapper.classList.remove("hidden");
+      } else {
+        favoriteOtherWrapper.classList.add("hidden");
+        favoriteOtherInput.value = "";
+      }
+    });
+
+    /* チーム・球場の選択肢生成 */
+    function buildTeamOptions(category) {
+      if (category === "ファーム") {
+        return [...NPB_12, ...FARM_EXTRA];
+      }
+      if (category === "練習試合" || category === "その他") {
+        return [...NPB_12, ...FARM_EXTRA, TEAM_OTHER];
+      }
+      return [...NPB_12];
+    }
+
+    function refreshTeamSelect(selectEl, category) {
+      const current = selectEl.value;
+      selectEl.innerHTML = '<option value="">選択してください</option>';
+      buildTeamOptions(category).forEach(t => {
+        const opt = document.createElement("option");
+        opt.value = t;
+        opt.textContent = t;
+        selectEl.appendChild(opt);
+      });
+      if (current) selectEl.value = current;
+    }
+
+    function buildStadiumOptions(category) {
+      if (category === "ファーム") {
+        return [...STADIUM_FARM, STADIUM_OTHER];
+      }
+      if (category === "練習試合" || category === "その他") {
+        return [...STADIUM_ICHIGUN, ...STADIUM_FARM, STADIUM_OTHER];
+      }
+      return [...STADIUM_ICHIGUN, STADIUM_OTHER];
+    }
+
+    function refreshStadiumSelect(category) {
+      const current = stadiumSelect.value;
+      stadiumSelect.innerHTML = '<option value="">選択してください</option>';
+      buildStadiumOptions(category).forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s;
+        opt.textContent = s;
+        stadiumSelect.appendChild(opt);
+      });
+      if (current) stadiumSelect.value = current;
+    }
+
+    /* その他入力欄の表示制御 */
+    function updateOtherVisibility() {
+      categoryOtherWrapper.style.display =
+        categorySelect.value === "その他" ? "block" : "none";
+
+      homeTeamOtherWrapper.style.display =
+        homeTeamSelect.value === TEAM_OTHER ? "block" : "none";
+
+      awayTeamOtherWrapper.style.display =
+        awayTeamSelect.value === TEAM_OTHER ? "block" : "none";
+
+      stadiumOtherWrapper.style.display =
+        stadiumSelect.value === STADIUM_OTHER ? "block" : "none";
+    }
+
+    /* 記録フォームの初期化 */
+    function initFormByCategory() {
+      const cat = categorySelect.value;
+      refreshTeamSelect(homeTeamSelect, cat);
+      refreshTeamSelect(awayTeamSelect, cat);
+      refreshStadiumSelect(cat);
+      updateOtherVisibility();
+    }
+
+    /* 検索ドロップダウン更新 */
+    function refreshSearchDropdowns() {
+      const homeSet = new Set();
+      const awaySet = new Set();
+      const stadiumSet = new Set();
+
+      records.forEach(r => {
+        homeSet.add(r.homeTeamDisplay);
+        awaySet.add(r.awayTeamDisplay);
+        stadiumSet.add(r.stadiumDisplay);
+      });
+
+      searchHomeTeamInput.innerHTML = '<option value="">指定なし</option>';
+      [...homeSet].forEach(v => {
+        searchHomeTeamInput.innerHTML += `<option value="${v}">${v}</option>`;
+      });
+
+      searchAwayTeamInput.innerHTML = '<option value="">指定なし</option>';
+      [...awaySet].forEach(v => {
+        searchAwayTeamInput.innerHTML += `<option value="${v}">${v}</option>`;
+      });
+
+      searchStadiumInput.innerHTML = '<option value="">指定なし</option>';
+      [...stadiumSet].forEach(v => {
+        searchStadiumInput.innerHTML += `<option value="${v}">${v}</option>`;
+      });
+    }
+
+    /* 記録一覧表示 */
+    function renderRecords(list) {
+      recordsTableBody.innerHTML = "";
+      list.forEach((rec, index) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${rec.date}</td>
+          <td>${rec.categoryDisplay}</td>
+          <td>${rec.homeTeamDisplay}</td>
+          <td>${rec.awayTeamDisplay}</td>
+          <td>${rec.result}</td>
+          <td>${rec.stadiumDisplay}</td>
+          <td>${rec.memo || ""}</td>
+          <td>
+            <button class="small-btn" onclick="editRecord(${index})">編集</button>
+            <button class="small-btn" onclick="deleteRecord(${index})">削除</button>
+          </td>
+        `;
+        recordsTableBody.appendChild(tr);
+      });
+    }
+
+    /* 検索処理 */
+    function applySearchAndSort() {
+      const year = searchYearSelect.value;
+      const month = searchMonthSelect.value;
+      const home = searchHomeTeamInput.value;
+      const away = searchAwayTeamInput.value;
+      const stadium = searchStadiumInput.value;
+      const sortOrder = document.querySelector('input[name="sortOrder"]:checked').value;
+
+      let list = [...records];
+
+      list = list.filter(rec => {
+        const d = new Date(rec.date);
+        if (year && d.getFullYear() !== Number(year)) return false;
+        if (month && d.getMonth() + 1 !== Number(month)) return false;
+        if (home && rec.homeTeamDisplay !== home) return false;
+        if (away && rec.awayTeamDisplay !== away) return false;
+        if (stadium && rec.stadiumDisplay !== stadium) return false;
+        return true;
+      });
+
+      list.sort((a, b) => {
+        return sortOrder === "asc"
+          ? a.date.localeCompare(b.date)
+          : b.date.localeCompare(a.date);
+      });
+
+      renderRecords(list);
+      refreshSearchDropdowns();
+    }
+
+    /* 編集・削除 */
+    let editingIndex = null;
+
+    window.editRecord = function (index) {
+      const rec = records[index];
+      editingIndex = index;
+
+      document.getElementById("date").value = rec.date;
+      categorySelect.value = rec.category;
+      initFormByCategory();
+
+      if (rec.category === "その他") categoryOtherInput.value = rec.categoryOther;
+
+      homeTeamSelect.value = rec.homeTeam;
+      if (rec.homeTeam === TEAM_OTHER) homeTeamOtherInput.value = rec.homeTeamOther;
+
+      awayTeamSelect.value = rec.awayTeam;
+      if (rec.awayTeam === TEAM_OTHER) awayTeamOtherInput.value = rec.awayTeamOther;
+
+      document.querySelectorAll('input[name="result"]').forEach(r => {
+        r.checked = r.value === rec.result;
+      });
+
+      stadiumSelect.value = rec.stadium;
+      if (rec.stadium === STADIUM_OTHER) stadiumOtherInput.value = rec.stadiumOther;
+
+      document.getElementById("memo").value = rec.memo || "";
+
+      updateOtherVisibility();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    window.deleteRecord = function (index) {
+      if (!confirm("この記録を削除しますか？")) return;
+      records.splice(index, 1);
+      saveRecords(records);
+      applySearchAndSort();
+    };
+
+    /* 記録保存 */
+    recordForm.addEventListener("submit", e => {
+      e.preventDefault();
+
+      const date = document.getElementById("date").value;
+      const category = categorySelect.value;
+      const categoryOther = category === "その他" ? categoryOtherInput.value.trim() : "";
+
+      const homeTeam = homeTeamSelect.value;
+      const homeTeamOther = homeTeam === TEAM_OTHER ? homeTeamOtherInput.value.trim() : "";
+
+      const awayTeam = awayTeamSelect.value;
+      const awayTeamOther = awayTeam === TEAM_OTHER ? awayTeamOtherInput.value.trim() : "";
+
+      const result = document.querySelector('input[name="result"]:checked')?.value;
+
+      const stadium = stadiumSelect.value;
+      const stadiumOther = stadium === STADIUM_OTHER ? stadiumOtherInput.value.trim() : "";
+
+      const memo = document.getElementById("memo").value.trim();
+
+      if (!date || !category || !homeTeam || !awayTeam || !result || !stadium) {
+        alert("必須項目を入力してください。");
+        return;
+      }
+      if (category === "その他" && !categoryOther) {
+        alert("カテゴリ（その他）を入力してください。");
+        return;
+      }
+      if (homeTeam === TEAM_OTHER && !homeTeamOther) {
+        alert("ホームチーム（その他）を入力してください。");
+        return;
+      }
+      if (awayTeam === TEAM_OTHER && !awayTeamOther) {
+        alert("ビジターチーム（その他）を入力してください。");
+        return;
+      }
+      if (stadium === STADIUM_OTHER && !stadiumOther) {
+        alert("球場（その他）を入力してください。");
+        return;
+      }
+
+      const record = {
+        date,
+        category,
+        categoryOther,
+        homeTeam,
+        homeTeamOther,
+        awayTeam,
+        awayTeamOther,
+        result,
+        stadium,
+        stadiumOther,
+        memo,
+        categoryDisplay: category === "その他" ? categoryOther : category,
+        homeTeamDisplay: homeTeam === TEAM_OTHER ? homeTeamOther : homeTeam,
+        awayTeamDisplay: awayTeam === TEAM_OTHER ? awayTeamOther : awayTeam,
+        stadiumDisplay: stadium === STADIUM_OTHER ? stadiumOther : stadium
+      };
+
+      if (editingIndex !== null) {
+        records[editingIndex] = record;
+        editingIndex = null;
+      } else {
+        records.push(record);
+      }
+
+      saveRecords(records);
+      applySearchAndSort();
+
+      recordForm.reset();
+      initFormByCategory();
+
+      saveMessage.textContent = "保存しました。";
+      setTimeout(() => (saveMessage.textContent = ""), 2000);
+    });
+
+    /* 集計処理 */
+    aggregateButton.addEventListener("click", () => {
+      let list = [...records];
+
+      const favValue = favoriteTeamSelect.value;
+      let favName = null;
+
+      // ★ 全試合モード
+      if (favValue === "") {
+        favName = null;  // ← 全試合
+      }
+      // ★ その他
+      else if (favValue === TEAM_OTHER) {
+        favName = favoriteOtherInput.value.trim();
+        if (!favName) {
+          alert("お気に入り球団（その他）を入力してください。");
+          return;
+        }
+      }
+      // ★ 通常の球団
+      else {
+        favName = favValue;
+      }
+
+      // ★ お気に入り球団が指定されている場合のみ絞り込み
+      if (favName) {
+        list = list.filter(
+          r => r.homeTeamDisplay === favName || r.awayTeamDisplay === favName
+        );
+      }
+
+      if (filterCategoryCheck.checked && filterCategorySelect.value) {
+        list = list.filter(r => r.categoryDisplay === filterCategorySelect.value);
+      }
+
+      if (filterPeriodCheck.checked) {
+        const year = Number(filterYearSelect.value);
+        const month = filterMonthSelect.value ? Number(filterMonthSelect.value) : null;
+
+        list = list.filter(r => {
+          const d = new Date(r.date);
+          if (d.getFullYear() !== year) return false;
+          if (month && d.getMonth() + 1 !== month) return false;
+          return true;
+        });
+      }
+
+      if (filterStadiumCheck.checked && filterStadiumSelect.value) {
+        list = list.filter(r => r.stadiumDisplay === filterStadiumSelect.value);
+      }
+
+      const total = list.length;
+      let win = 0, lose = 0, draw = 0;
+
+      list.forEach(r => {
+        if (r.result === "引き分け") {
+          draw++;
+        } else if (r.result === "ホーム勝ち") {
+          if (r.homeTeamDisplay === favName) win++;
+          else lose++;
+        } else if (r.result === "ビジター勝ち") {
+          if (r.awayTeamDisplay === favName) win++;
+          else lose++;
+        }
+      });
+
+      let html = `<h3>集計結果</h3>`;
+      html += `<p>対象試合数：${total} 試合</p>`;
+
+      // ★ 勝率は「お気に入り球団がある場合のみ」表示
+      if (calcWinRateCheck.checked && favName && total > 0) {
+        const base = total - draw;
+        const rate = base > 0 ? (win / base) * 100 : 0;
+        html += `<p>勝率（引き分け除く）：${rate.toFixed(1)}%</p>`;
+      }
+
+      if (total === 0) {
+        html += `<p>条件に合致する試合がありません。</p>`;
+      }
+
+      aggregateResultDiv.innerHTML = html;
+    });
+
+    /* 球場フィルタ用ドロップダウン初期化 */
+    function initStadiumFilterDropdown() {
+      const allStadiums = [...STADIUM_ICHIGUN, ...STADIUM_FARM, STADIUM_OTHER];
+      filterStadiumSelect.innerHTML = '<option value="">指定なし</option>';
+      allStadiums.forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s;
+        opt.textContent = s;
+        filterStadiumSelect.appendChild(opt);
+      });
+    }
+
+    /* 各種チェックボックスの制御 */
+    filterCategoryCheck.addEventListener("change", () => {
+      filterCategorySelect.disabled = !filterCategoryCheck.checked;
+    });
+    filterPeriodCheck.addEventListener("change", () => {
+      const enabled = filterPeriodCheck.checked;
+      filterYearSelect.disabled = !enabled;
+      filterMonthSelect.disabled = !enabled;
+    });
+    filterStadiumCheck.addEventListener("change", () => {
+      filterStadiumSelect.disabled = !filterStadiumCheck.checked;
+    });
+
+    /* 検索ボタン・クリアボタン */
+    searchButton.addEventListener("click", () => {
+      applySearchAndSort();
+    });
+
+    clearSearchButton.addEventListener("click", () => {
+      searchYearSelect.value = "";
+      searchMonthSelect.value = "";
+      searchHomeTeamInput.value = "";
+      searchAwayTeamInput.value = "";
+      searchStadiumInput.value = "";
+      document.querySelector('input[name="sortOrder"][value="asc"]').checked = true;
+      applySearchAndSort();
+    });
+
+    /* カテゴリ変更時のフォーム更新 */
+    categorySelect.addEventListener("change", () => {
+      initFormByCategory();
+    });
+    homeTeamSelect.addEventListener("change", updateOtherVisibility);
+    awayTeamSelect.addEventListener("change", updateOtherVisibility);
+    stadiumSelect.addEventListener("change", updateOtherVisibility);
+
+    /* 初期化 */
+    (function init() {
+      initYearSelects();
+      initFavoriteTeamSelect();
+      initStadiumFilterDropdown();
+      initFormByCategory();
+      refreshSearchDropdowns();
+      applySearchAndSort();
+    })();
+  </script>
+</body>
+</html>
