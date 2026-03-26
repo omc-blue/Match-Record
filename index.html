@@ -106,6 +106,36 @@
     }
 
     .hidden { display: none; }
+
+    @media (max-width: 600px) {
+      body {
+        font-size: 18px;
+      }
+      input, select, textarea, button {
+        font-size: 18px;
+        padding: 12px;
+      }
+      table {
+        font-size: 16px;
+      }
+      .footer {
+        font-size: 16px;
+      }
+    }
+
+    .footer {
+      text-align: center;
+      padding: 16px 0;
+      color: #888;
+      font-size: 13px;
+      border-top: 1px solid #ddd;
+      margin-top: 40px;
+    }
+    .version {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
   </style>
 </head>
 
@@ -304,19 +334,19 @@
 
     /* 定数 */
     const NPB_12 = [
-      "横浜DeNAベイスターズ","読売ジャイアンツ","阪神タイガース","中日ドラゴンズ",
-      "広島東洋カープ","東京ヤクルトスワローズ","オリックス・バファローズ",
-      "福岡ソフトバンクホークス","埼玉西武ライオンズ","東北楽天ゴールデンイーグルス",
-      "千葉ロッテマリーンズ","北海道日本ハムファイターズ"
+      "横浜DeNAベイスターズ","読売ジャイアンツ","東京ヤクルトスワローズ",
+      "中日ドラゴンズ","広島東洋カープ","阪神タイガース","埼玉西武ライオンズ",
+      "千葉ロッテマリーンズ","オリックス・バファローズ","福岡ソフトバンクホークス",
+      "東北楽天ゴールデンイーグルス","北海道日本ハムファイターズ"
     ];
     const FARM_EXTRA = ["オイシックス新潟アルビレックスBC","くふうハヤテベンチャーズ静岡"];
     const TEAM_OTHER = "その他";
 
     const STADIUM_ICHIGUN = [
-      "横浜スタジアム","東京ドーム","阪神甲子園球場","バンテリンドーム ナゴヤ",
-      "MAZDA Zoom-Zoom スタジアム広島","明治神宮野球場","京セラドーム大阪",
-      "福岡PayPayドーム","ベルーナドーム","楽天モバイルパーク宮城",
-      "ZOZOマリンスタジアム","エスコンフィールドHOKKAIDO"
+      "横浜スタジアム","東京ドーム","明治神宮野球場","バンテリンドーム ナゴヤ",
+      "MAZDA Zoom-Zoom スタジアム広島","阪神甲子園球場","ベルーナドーム",
+      "ZOZOマリンスタジアム","楽天モバイルパーク宮城","福岡PayPayドーム",
+      "京セラドーム大阪","エスコンフィールドHOKKAIDO","パブリックビューイング"
     ];
     const STADIUM_FARM = [
       "横須賀スタジアム","バッティングパレスひらつか","Gタウン",
@@ -535,8 +565,8 @@
           <td>${rec.stadiumDisplay}</td>
           <td>${rec.memo || ""}</td>
           <td>
-            <button class="small-btn" onclick="editRecord(${index})">編集</button>
-            <button class="small-btn" onclick="deleteRecord(${index})">削除</button>
+            <button class="small-btn" onclick="editRecord(${rec._index})">編集</button>
+            <button class="small-btn" onclick="deleteRecord(${rec._index})">削除</button>
           </td>
         `;
         recordsTableBody.appendChild(tr);
@@ -552,7 +582,7 @@
       const stadium = searchStadiumInput.value;
       const sortOrder = document.querySelector('input[name="sortOrder"]:checked').value;
 
-      let list = [...records];
+      let list = records.map((r, i) => ({ ...r, _index: i }));
 
       list = list.filter(rec => {
         const d = new Date(rec.date);
@@ -604,6 +634,12 @@
 
       updateOtherVisibility();
       window.scrollTo({ top: 0, behavior: "smooth" });
+
+      // ★ 編集時に記録タブへ移動
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+      document.querySelector('[data-tab="tab1"]').classList.add("active");
+      document.getElementById("tab1").classList.add("active");
     };
 
     window.deleteRecord = function (index) {
@@ -831,5 +867,11 @@
       applySearchAndSort();
     })();
   </script>
+
+<footer class="footer">
+  <div>@omc_blue / 2026-</div>
+  <div class="version">Ver. 1.0.1</div>
+</footer>
+
 </body>
 </html>
