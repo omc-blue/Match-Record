@@ -122,17 +122,36 @@
 
     @media (max-width: 600px) {
       body {
-        font-size: 24px;
+        font-size: 20px;
       }
+
       input, select, textarea, button {
-        font-size: 24px;
-        padding: 12px;
+        font-size: 20px;
+        padding: 14px;
       }
+
+      /* ボタンを押しやすくする */
+      button {
+        padding: 16px;
+        font-size: 20px;
+        border-radius: 10px;
+      }
+
+      /* 編集・削除ボタンも押しやすく */
+      button.small-btn {
+        padding: 12px 16px;
+        font-size: 18px;
+      }
+
+      /* テーブルの文字は少し控えめ */
       table {
         font-size: 16px;
       }
+
+      /* フッターも見やすく */
       .footer {
         font-size: 16px;
+        padding: 20px 0;
       }
     }
 
