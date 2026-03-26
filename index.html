@@ -7,10 +7,16 @@
 
   <style>
     body {
-      font-family: system-ui, sans-serif;
+      font-family: "Meiryo UI", "メイリオ", system-ui, sans-serif;
       margin: 12px;
       font-size: 16px;
       line-height: 1.5;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
     }
 
     .tabs {
@@ -121,40 +127,56 @@
       opacity: 0.8;
     }
 
-    @media (max-width: 600px) {
-      body {
-        font-size: 20px;
-      }
+@media (max-width: 600px) {
 
-      input, select, textarea, button {
-        font-size: 20px;
-        padding: 14px;
-      }
+  /* 観戦日の入力欄だけ少し小さく */
+  input[type="date"] {
+    font-size: 18px;
+    padding: 8px;
+  }
 
-      /* ボタンを押しやすくする */
-      button {
-        padding: 16px;
-        font-size: 20px;
-        border-radius: 10px;
-      }
+  /* 全体の文字を少し小さめに */
+  body {
+    font-size: 20px;
+    font-family: "Meiryo UI", "メイリオ", system-ui, sans-serif;
+  }
 
-      /* 編集・削除ボタンも押しやすく */
-      button.small-btn {
-        padding: 12px 16px;
-        font-size: 18px;
-      }
+  /* タイトルを小さく */
+  h1 {
+    font-size: 20px;
+    text-align: center;
+  }
 
-      /* テーブルの文字は少し控えめ */
-      table {
-        font-size: 16px;
-      }
+  /* 入力欄・ボタンの基本サイズ */
+  input, select, textarea, button {
+    font-size: 20px;
+    padding: 12px;
+  }
 
-      /* フッターも見やすく */
-      .footer {
-        font-size: 16px;
-        padding: 20px 0;
-      }
-    }
+  /* ボタンを押しやすくする */
+  button {
+    padding: 14px;
+    font-size: 20px;
+    border-radius: 10px;
+  }
+
+  /* 編集・削除ボタンも押しやすく */
+  button.small-btn {
+    padding: 10px 14px;
+    font-size: 16px;
+  }
+
+  /* テーブルは控えめに */
+  table {
+    font-size: 15px;
+  }
+
+  /* フッターもスマホ向けに */
+  .footer {
+    font-size: 15px;
+    padding: 20px 0;
+  }
+}
 
   </style>
 </head>
@@ -175,7 +197,7 @@
       <fieldset>
         <legend>観戦記録入力</legend>
 
-        <label for="date">観戦日付：</label>
+        <label for="date">観戦日：</label>
         <input type="date" id="date" required />
 
         <label for="category">カテゴリ：</label>
@@ -890,7 +912,7 @@
 
 <footer class="footer">
   <div>@omc_blue / 2026-</div>
-  <div class="version">Ver. 1.0.1</div>
+  <div class="version">Ver. 1.0.2</div>
 </footer>
 
 </body>
